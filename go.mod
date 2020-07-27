@@ -1,4 +1,4 @@
-module caddy-v1-extract
+module github.com/optionfactory/caddy-v1-extract
 
 go 1.13
 
