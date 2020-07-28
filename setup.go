@@ -11,7 +11,7 @@ import (
 // GeoIP represents a middleware instance
 type CaddyRegex struct {
 	Next      httpserver.Handler
-	Config    *Config
+	Config   Config
 }
 
 type Config struct {
@@ -21,35 +21,36 @@ type Config struct {
 	Index int
 }
 
-func parseConfig(c *caddy.Controller) (*Config, error) {
+func parseConfig(c *caddy.Controller) (Config, error) {
 	var config = Config{}
 	for c.Next() {
 		value := c.Val()
 		switch value {
 		case "extract":
 			if !c.NextArg() {
-				continue
+				return config, c.ArgErr()
 			}
 			config.Regex = regexp.MustCompile(c.Val())
 			if !c.NextArg() {
-				continue
+				return config, c.ArgErr()
 			}
 			config.VariableName = c.Val()
 			if !c.NextArg() {
-				continue
+				return config, c.ArgErr()
 			}
 			config.Source = c.Val()
 			if !c.NextArg() {
-				continue
+				return config, c.ArgErr()
 			}
 			var err error
 			config.Index, err = strconv.Atoi(c.Val())
 			if err != nil {
-				return nil, err
+				return config, err
 			}
 		}
 	}
-	return &config, nil
+
+	return config, nil
 }
 
 
@@ -59,6 +60,7 @@ func init() {
 		ServerType: "http",
 		Action:     setup,
 	})
+	httpserver.RegisterDevDirective("extract","geoip")
 }
 
 func setup(c *caddy.Controller) error {
@@ -66,7 +68,6 @@ func setup(c *caddy.Controller) error {
 	if err != nil {
 		return err
 	}
-
 
 	// Create new middleware
 	newMiddleWare := func(next httpserver.Handler) httpserver.Handler {
@@ -78,7 +79,6 @@ func setup(c *caddy.Controller) error {
 	// Add middleware
 	cfg := httpserver.GetConfig(c)
 	cfg.AddMiddleware(newMiddleWare)
-
 	return nil
 }
 

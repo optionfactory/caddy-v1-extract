@@ -15,7 +15,7 @@ import (
 func TestParseConfig(t *testing.T) {
 	controller := caddy.NewTestController("http", `
 		localhost:8080
-		extract regexp variable source 
+		extract regexp variable source 0
 	`)
 	actual, err := parseConfig(controller)
 	if err != nil {
@@ -25,8 +25,9 @@ func TestParseConfig(t *testing.T) {
 		Regex:        regexp.MustCompile("regexp"),
 		VariableName: "variable",
 		Source:       "source",
+		Index:        0,
 	}
-	if !reflect.DeepEqual(&expected, actual) {
+	if !reflect.DeepEqual(expected, actual) {
 		t.Errorf("Expected %v actual %v", expected, actual)
 	}
 }
@@ -49,7 +50,7 @@ func TestReplacers(t *testing.T) {
 		Next: httpserver.HandlerFunc(func(w http.ResponseWriter, r *http.Request) (int, error) {
 			return 0, nil
 		}),
-		Config: &config,
+		Config: config,
 	}
 
 	w := httptest.NewRecorder()
